@@ -6,7 +6,6 @@ type Props = {
 }
 
 const props = defineProps<Props>()
-console.log('props in the node', props.node)
 </script>
 
 <template>

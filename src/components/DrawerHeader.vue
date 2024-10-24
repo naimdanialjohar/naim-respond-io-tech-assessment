@@ -2,11 +2,14 @@
 import { useNodeStore } from '@/stores/node'
 import type { Node } from '@vue-flow/core'
 import { ref } from 'vue'
+import ConfirmationDialog from './ConfirmationDialog.vue'
 
 type Props = {
   activeNode: Node
   icon: string
   iconColor: string
+  removeNodeFunction: (id: string) => void
+  closeDrawerFunction: () => void
 }
 
 const props = defineProps<Props>()
@@ -17,8 +20,6 @@ const nodeId = props.activeNode.id
 const handleUpdate = () => {
   nodeStore.updateTitle(nodeId, titleRef.value)
 }
-
-console.log('props', props.activeNode)
 </script>
 <template>
   <v-row no-gutters class="tw-items-center tw-justify-between">
@@ -26,7 +27,19 @@ console.log('props', props.activeNode)
       <v-icon :icon="props.icon" :color="props.iconColor" class="tw-mr-2" />
       <v-text-field v-model="titleRef" full-width @input="handleUpdate" />
     </div>
-    <slot></slot>
+    <!-- <slot></slot> -->
+    <div class="tw-flex tw-gap-3">
+      <v-btn @click="props.closeDrawerFunction" size="small" class="no-padding"
+        >Close</v-btn
+      >
+      <ConfirmationDialog
+        title="Remove node"
+        buttonText="Remove node"
+        :onApprove="() => props.removeNodeFunction(nodeStore.activeNode!.id)"
+        onApproveText="Remove"
+        >{{ 'Are you sure you want to remove this node?' }}
+      </ConfirmationDialog>
+    </div>
   </v-row>
   <v-divider :thickness="1" class="tw-my-5 tw-border-gray-700"></v-divider>
 </template>

@@ -4,8 +4,8 @@ import {
   type Node as VueFlowNode,
   type Edge as VueFlowEdge,
   useVueFlow,
-  useNode,
 } from '@vue-flow/core'
+import type { Node, Times } from '@/types'
 
 const data: Node[] = [
   {
@@ -90,42 +90,7 @@ const data: Node[] = [
   },
 ]
 
-export type NodeType =
-  | 'trigger'
-  | 'sendMessage'
-  | 'dateTime'
-  | 'dateTimeConnector'
-  | 'addComment'
-
-type PayloadType =
-  | { type: 'text'; text: string }
-  | { type: 'attachment'; attachment: string }
-
-type NodeData = {
-  type?: string
-  oncePerContact?: boolean
-  payload?: PayloadType[]
-  times?: {
-    startTime: string
-    endTime: string
-    day: string
-  }[]
-  connectors?: string[]
-  timezone?: string
-  action?: string
-  connectorType?: 'success' | 'failure'
-  comment?: string
-}
-
-type Node = {
-  id: string
-  parentId: string
-  type: NodeType
-  name?: string
-  data: NodeData
-}
-
-// Define positions for each node (for demo purposes)
+// positions for each node
 const positions = {
   // trigger
   '1': { x: 50, y: 50 },
@@ -143,7 +108,7 @@ const positions = {
   e879e4: { x: 179, y: 650 },
 }
 
-const { updateNode } = useVueFlow()
+const { removeNodes } = useVueFlow()
 
 export const useNodeStore = defineStore('node', () => {
   const activeNode = ref<VueFlowNode | undefined>(undefined)
@@ -171,23 +136,74 @@ export const useNodeStore = defineStore('node', () => {
       target: node.id,
     }))
 
-  const setActiveNode = (id: string | undefined) => {
-    // console.log('yay! using pinia store')
-    activeNode.value = nodes.value.find(node => node.id === id)
-    console.log('activeNode', activeNode.value)
-  }
+  const setActiveNode = (id: string | undefined) =>
+    (activeNode.value = nodes.value.find(node => node.id === id))
 
-  const addNode = (nodeData: VueFlowNode) => {
-    nodes.value.push(nodeData)
-  }
+  const addNode = (nodeData: VueFlowNode) => nodes.value.push(nodeData)
 
   const updateTitle = (id: string, title: string) => {
     const node = nodes.value.find(item => item.id === id)
     if (node) {
       node.data.label = title
-      nodes.value = [...nodes.value, { ...node }]
+      nodes.value.map(item => {
+        if (item.id === id) node
+        item
+      })
     }
   }
 
-  return { nodes, edges, activeNode, updateTitle, setActiveNode, addNode }
+  const updateTime = (id: string, day: string, time: string, key: string) => {
+    const node = nodes.value.find(item => item.id === id)
+    if (node) {
+      const nodeTimeData = node.data.times.find(
+        (time: Times) => time.day === day,
+      )
+      if (nodeTimeData) {
+        nodeTimeData[key] = time
+      }
+    }
+  }
+
+  const updateAttachments = (id: string, fileData: File) => {
+    const node = nodes.value.find(item => item.id === id)
+
+    if (node) {
+      const reader = new FileReader()
+      const imageRef = ref()
+
+      reader.onload = e => (imageRef.value = e.target?.result)
+
+      reader.readAsDataURL(fileData)
+
+      node.data.payload.push({
+        type: 'attachment',
+        attachment: imageRef,
+      })
+
+      nodes.value.map(item => {
+        if (item.id === id) node
+        item
+      })
+    }
+  }
+
+  // remove node, and close drawer
+  // pair with confirmation dialog
+  const onRemoveNode = (id: string) => {
+    removeNodes(id)
+    nodes.value = nodes.value.filter(item => item.id !== id)
+    setActiveNode(undefined)
+  }
+
+  return {
+    nodes,
+    edges,
+    activeNode,
+    updateTitle,
+    updateTime,
+    updateAttachments,
+    setActiveNode,
+    addNode,
+    onRemoveNode,
+  }
 })

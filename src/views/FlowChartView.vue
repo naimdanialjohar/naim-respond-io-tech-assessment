@@ -7,12 +7,14 @@ import { VueFlow, useVueFlow, Panel, type Node } from '@vue-flow/core'
 import BusinessHoursNode from '../components/BusinessHoursNode.vue'
 import CustomEdge from '../components/CustomEdge.vue'
 import Drawer from '@/components/Drawer.vue'
-import { useNodeStore, type NodeType } from '@/stores/node'
+import { useNodeStore } from '@/stores/node'
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue'
 import DateTimeConnectorNode from '@/components/DateTimeConnectorNode.vue'
 import SendMessageNode from '@/components/SendMessageNode.vue'
 import AddCommentNode from '@/components/AddCommentNode.vue'
 import TriggerNode from '@/components/TriggerNode.vue'
+import { useRouter } from 'vue-router'
+import type { NodeType } from '@/types'
 
 // todo list
 // add draggable nodes based on the payload below
@@ -39,27 +41,27 @@ const { onConnect, addEdges, addNodes, onNodeClick, getNodes, getEdges } =
   useVueFlow()
 const { nodes, edges, setActiveNode, addNode } = useNodeStore()
 
-onConnect(params => {
-  console.log('params', params)
-  addEdges([params])
-})
+onConnect(params => addEdges([params]))
 
 addNodes(nodes)
 addEdges(edges)
 
-console.log('nodes', nodes)
+const router = useRouter()
 
 onNodeClick(event => {
-  console.log('lala', event.node.id)
   // blocks success, failure nodes from being accessed
-  if (event.node.type !== 'dateTimeConnector') setActiveNode(event.node.id)
+  if (event.node.type !== 'dateTimeConnector') {
+    router
+      .push({ path: '/flow_chart', query: { node: event.node.id } })
+      .then(() => {
+        setActiveNode(event.node.id)
+      })
+  }
 })
 
 const typeOptions: NodeType[] = ['sendMessage', 'addComment', 'dateTime']
 
 function onAddNode() {
-  // add a single node to the graph
-
   const sendMessageData = typeRef.value === 'sendMessage' && {
     payload: [
       { type: 'text', text: descriptionRef.value },
@@ -110,9 +112,6 @@ const form = ref()
 const titleRef = ref('')
 const descriptionRef = ref('')
 const typeRef = ref(null)
-const required = (v: any) => {
-  return !!v || 'Field is required'
-}
 const reset = () => {
   form.value.reset()
 }
@@ -140,7 +139,7 @@ const validate = async () => {
         </template>
 
         <template #node-dateTime="node">
-          <BusinessHoursNode :node="node as any" />
+          <BusinessHoursNode :node="node" />
         </template>
 
         <template #node-dateTimeConnector>
@@ -173,18 +172,18 @@ const validate = async () => {
               <v-text-field
                 label="Title"
                 v-model="titleRef"
-                :rules="[(v: any) => !!v || 'Title is required']"
+                :rules="[() => 'Title is required']"
               />
               <v-text-field
                 label="Description"
                 v-model="descriptionRef"
-                :rules="[(v: any) => !!v || 'Description is required']"
+                :rules="[() => 'Description is required']"
               />
               <v-select
                 label="Type"
                 v-model="typeRef"
                 :items="typeOptions"
-                :rules="[(v: any) => !!v || 'Type is required']"
+                :rules="[() => 'Type is required']"
               />
               <v-btn block @click="validate"> Create </v-btn>
             </v-form>

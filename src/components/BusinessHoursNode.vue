@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { convertCamelCaseToTitleCase } from '@/utils'
 import type { NodeProps } from '@vue-flow/core'
 
 type Props = {
@@ -6,13 +7,6 @@ type Props = {
 }
 
 const props = defineProps<Props>()
-
-const convertCamelCaseToTitleCase = (text: string) => {
-  // Use a regex to insert a space before each uppercase letter
-  const result = text.replace(/([A-Z])/g, ' $1')
-
-  return result.replace(/^./, text[0].toUpperCase()) // Capitalize first letter
-}
 </script>
 
 <template>

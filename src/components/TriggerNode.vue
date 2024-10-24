@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { convertCamelCaseToTitleCase } from '@/utils'
 import type { NodeProps } from '@vue-flow/core'
 
 type Props = {
@@ -24,7 +25,7 @@ const props = defineProps<Props>()
     </div>
     <v-divider :thickness="1" class="tw-border-gray-700" />
     <div class="tw-p-3 tw-text-sm">
-      {{ props.node.data.type }}
+      {{ convertCamelCaseToTitleCase(props.node.data.type) }}
     </div>
   </div>
   <!-- <Handle

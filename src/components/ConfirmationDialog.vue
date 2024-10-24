@@ -6,7 +6,7 @@ const dialog = ref(false)
 type Props = {
   title: string
   buttonText: string
-  onApprove: any
+  onApprove: () => void
   onApproveText: string
 }
 

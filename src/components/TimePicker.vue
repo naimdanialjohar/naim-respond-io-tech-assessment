@@ -1,14 +1,25 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { useNodeStore } from '@/stores/node'
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 type Props = {
   label: string
   time: string
+  day: string
+  fieldKey: string
 }
+
+const { updateTime, activeNode } = useNodeStore()
 
 const props = defineProps<Props>()
 const time = ref(props.time)
 const modal = ref(false)
+
+watch(time, () => {
+  console.log('time updates', time)
+  updateTime(activeNode?.id as string, props.day, time.value, props.fieldKey)
+})
 </script>
 
 <template>
